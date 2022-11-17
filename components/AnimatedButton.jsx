@@ -20,12 +20,12 @@ export default function AnimatedButton() {
   // init other global elements
   var disabled = false;
 
-  let button, canvas;
+  let button, canvas, ctx;
 
   if (typeof window !== "undefined") {
     button = document.getElementById("button");
     canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+    ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     let cx = ctx.canvas.width / 2;
@@ -64,12 +64,12 @@ export default function AnimatedButton() {
     };
     this.position = {
       x: randomRange(
-        canvas.width / 2 - button.offsetWidth / 4,
-        canvas.width / 2 + button.offsetWidth / 4
+        canvas && canvas.width / 2 - button.offsetWidth / 4,
+        canvas && canvas.width / 2 + button.offsetWidth / 4
       ),
       y: randomRange(
-        canvas.height / 2 + button.offsetHeight / 2 + 8,
-        canvas.height / 2 + 1.5 * button.offsetHeight - 8
+        canvas && canvas.height / 2 + button.offsetHeight / 2 + 8,
+        canvas && canvas.height / 2 + 1.5 * button.offsetHeight - 8
       ),
     };
     this.rotation = randomRange(0, 2 * Math.PI);
@@ -102,12 +102,12 @@ export default function AnimatedButton() {
       (this.radius = randomRange(1, 2)),
       (this.position = {
         x: randomRange(
-          canvas.width / 2 - button.offsetWidth / 3,
-          canvas.width / 2 + button.offsetWidth / 3
+          canvas && canvas.width / 2 - button.offsetWidth / 3,
+          canvas && canvas.width / 2 + button.offsetWidth / 3
         ),
         y: randomRange(
-          canvas.height / 2 + button.offsetHeight / 2 + 8,
-          canvas.height / 2 + 1.5 * button.offsetHeight - 8
+          canvas && canvas.height / 2 + button.offsetHeight / 2 + 8,
+          canvas && canvas.height / 2 + 1.5 * button.offsetHeight - 8
         ),
       }),
       (this.velocity = {
@@ -137,79 +137,81 @@ export default function AnimatedButton() {
 
   // draws the elements on the canvas
   const render = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    confetti.forEach((confetto, index) => {
-      let width = confetto.dimensions.x * confetto.scale.x;
-      let height = confetto.dimensions.y * confetto.scale.y;
+      confetti.forEach((confetto, index) => {
+        let width = confetto.dimensions.x * confetto.scale.x;
+        let height = confetto.dimensions.y * confetto.scale.y;
 
-      // move canvas to position and rotate
-      ctx.translate(confetto.position.x, confetto.position.y);
-      ctx.rotate(confetto.rotation);
+        // move canvas to position and rotate
+        ctx.translate(confetto.position.x, confetto.position.y);
+        ctx.rotate(confetto.rotation);
 
-      // update confetto "physics" values
-      confetto.update();
+        // update confetto "physics" values
+        confetto.update();
 
-      // get front or back fill color
-      ctx.fillStyle =
-        confetto.scale.y > 0 ? confetto.color.front : confetto.color.back;
+        // get front or back fill color
+        ctx.fillStyle =
+          confetto.scale.y > 0 ? confetto.color.front : confetto.color.back;
 
-      // draw confetto
-      ctx.fillRect(-width / 2, -height / 2, width, height);
+        // draw confetto
+        ctx.fillRect(-width / 2, -height / 2, width, height);
 
-      // reset transform matrix
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+        // reset transform matrix
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-      // clear rectangle where button cuts off
-      if (confetto.velocity.y < 0) {
-        ctx.clearRect(
-          canvas.width / 2 - button.offsetWidth / 2,
-          canvas.height / 2 + button.offsetHeight / 2,
-          button.offsetWidth,
-          button.offsetHeight
-        );
-      }
-    });
+        // clear rectangle where button cuts off
+        if (confetto.velocity.y < 0) {
+          ctx.clearRect(
+            canvas.width / 2 - button.offsetWidth / 2,
+            canvas.height / 2 + button.offsetHeight / 2,
+            button.offsetWidth,
+            button.offsetHeight
+          );
+        }
+      });
 
-    sequins.forEach((sequin, index) => {
-      // move canvas to position
-      ctx.translate(sequin.position.x, sequin.position.y);
+      sequins.forEach((sequin, index) => {
+        // move canvas to position
+        ctx.translate(sequin.position.x, sequin.position.y);
 
-      // update sequin "physics" values
-      sequin.update();
+        // update sequin "physics" values
+        sequin.update();
 
-      // set the color
-      ctx.fillStyle = sequin.color;
+        // set the color
+        ctx.fillStyle = sequin.color;
 
-      // draw sequin
-      ctx.beginPath();
-      ctx.arc(0, 0, sequin.radius, 0, 2 * Math.PI);
-      ctx.fill();
+        // draw sequin
+        ctx.beginPath();
+        ctx.arc(0, 0, sequin.radius, 0, 2 * Math.PI);
+        ctx.fill();
 
-      // reset transform matrix
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+        // reset transform matrix
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-      // clear rectangle where button cuts off
-      if (sequin.velocity.y < 0) {
-        ctx.clearRect(
-          canvas.width / 2 - button.offsetWidth / 2,
-          canvas.height / 2 + button.offsetHeight / 2,
-          button.offsetWidth,
-          button.offsetHeight
-        );
-      }
-    });
+        // clear rectangle where button cuts off
+        if (sequin.velocity.y < 0) {
+          ctx.clearRect(
+            canvas.width / 2 - button.offsetWidth / 2,
+            canvas.height / 2 + button.offsetHeight / 2,
+            button.offsetWidth,
+            button.offsetHeight
+          );
+        }
+      });
 
-    // remove confetti and sequins that fall off the screen
-    // must be done in seperate loops to avoid noticeable flickering
-    confetti.forEach((confetto, index) => {
-      if (confetto.position.y >= canvas.height) confetti.splice(index, 1);
-    });
-    sequins.forEach((sequin, index) => {
-      if (sequin.position.y >= canvas.height) sequins.splice(index, 1);
-    });
+      // remove confetti and sequins that fall off the screen
+      // must be done in seperate loops to avoid noticeable flickering
+      confetti.forEach((confetto, index) => {
+        if (confetto.position.y >= canvas.height) confetti.splice(index, 1);
+      });
+      sequins.forEach((sequin, index) => {
+        if (sequin.position.y >= canvas.height) sequins.splice(index, 1);
+      });
 
-    window.requestAnimationFrame(render);
+      window.requestAnimationFrame(render);
+    }
   };
 
   // cycle through button states when clicked
@@ -225,6 +227,7 @@ export default function AnimatedButton() {
         button.classList.remove("loading");
         setTimeout(() => {
           initBurst();
+          render();
           setTimeout(() => {
             // Reset button so user can select it again
             disabled = false;
@@ -240,7 +243,7 @@ export default function AnimatedButton() {
   const textElements = button && button.querySelectorAll(".button-text");
   textElements &&
     textElements.forEach((element) => {
-      characters = element.innerText.split("");
+      let characters = element.innerText.split("");
       let characterHTML = "";
       characters.forEach((letter, index) => {
         characterHTML += `<span class="char${index}" style="--d:${
