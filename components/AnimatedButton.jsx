@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 export default function AnimatedButton() {
   // ammount to add on each button press
   const confettiCount = 20;
@@ -239,23 +241,27 @@ export default function AnimatedButton() {
     }
   };
 
-  // Set up button text transition timings on page load
-  const textElements = button && button.querySelectorAll(".button-text");
-  textElements &&
-    textElements.forEach((element) => {
-      let characters = element.innerText.split("");
-      let characterHTML = "";
-      characters.forEach((letter, index) => {
-        characterHTML += `<span class="char${index}" style="--d:${
-          index * 30
-        }ms; --dr:${(characters.length - index - 1) * 30}ms;">${letter}</span>`;
+  useEffect(() => {
+    // Set up button text transition timings on page load
+    const textElements = button && button.querySelectorAll(".button-text");
+    textElements &&
+      textElements.forEach((element) => {
+        let characters = element.innerText.split("");
+        let characterHTML = "";
+        characters.forEach((letter, index) => {
+          characterHTML += `<span class="char${index}" style="--d:${
+            index * 30
+          }ms; --dr:${
+            (characters.length - index - 1) * 30
+          }ms;">${letter}</span>`;
+        });
+        element.innerHTML = characterHTML;
       });
-      element.innerHTML = characterHTML;
-    });
 
-  // kick off the render loop
-  initBurst();
-  render();
+    // kick off the render loop
+    initBurst();
+    render();
+  }, []);
 
   return (
     <>
